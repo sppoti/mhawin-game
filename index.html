@@ -227,21 +227,79 @@
     }
 
     async function evalWin(grid) {
-      let win = 0; 
-      const wc = new Set();
-      
-      for (const ln of PAYLINES) {
-        const f = grid[ln[0][0]][ln[0][1]]; 
-        let cnt = 1;
-        for (let i = 1; i < 5; i++) { 
-          if (grid[ln[i][0]][ln[i][1]].text === f.text) cnt++; 
-          else break; 
-        }
-        if (cnt >= 3) {
-          const b = cnt === 3 ? 2 : cnt === 4 ? 8 : 40; 
-          win += b * bet * f.mult;
-          for (let i = 0; i < cnt; i++) wc.add(`${ln[i][0]},${ln[i][1]}`);
-        }
+  let win = 0; 
+  const wc = new Set();
+  
+  for (const ln of PAYLINES) {
+    const f = grid[ln[0][0]][ln[0][1]]; 
+    let cnt = 1;
+    for (let i = 1; i < 5; i++) { 
+      if (grid[ln[i][0]][ln[i][1]].text === f.text) cnt++; 
+      else break; 
+    }
+    if (cnt >= 3) {
+      const b = cnt === 3 ? 2 : cnt === 4 ? 8 : 40; 
+      win += b * bet * f.mult;
+      for (let i = 0; i < cnt; i++) wc.add(`${ln[i][0]},${ln[i][1]}`);
+    }
+  }
+
+  balance += win; 
+  tournScore += win;
+
+  if (win > 0) {
+    // Отправка на сервер с таймаутом
+    if (API_URL) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 секунды
+        
+        await fetch(`${API_URL}/api/submit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ initData: tg.initData, winAmount: win }),
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+      } catch (e) {
+        console.warn('Server sync failed (continuing offline):', e);
+        // НЕ прерываем игру, просто работаем офлайн
+      }
+    }
+
+    // Звук и анимация (выполняем всегда)
+    try {
+      snd([523, 659, 784, 1047], 'triangle', 0.12);
+    } catch(e) {}
+    
+    if (tg.HapticFeedback) {
+      try { tg.HapticFeedback.notificationOccurred('success'); } catch(e) {}
+    }
+
+    wc.forEach(k => {
+      const [c, r] = k.split(',').map(Number);
+      const sym = document.getElementById(`s${c}`).children[r + FILL];
+      if (sym) sym.classList.add('win');
+    });
+
+    document.getElementById('overlayCoins').textContent = `+${win}`;
+    document.getElementById('winOverlay').classList.add('visible');
+    setTimeout(() => document.getElementById('winOverlay').classList.remove('visible'), 2500);
+
+    document.getElementById('infoBox').innerHTML = `🎉 ВЫИГРЫШ: <span style="color:#00ff9d">+${win}</span>`;
+    document.getElementById('infoBox').className = 'info-box win-text';
+  } else {
+    if (tg.HapticFeedback) {
+      try { tg.HapticFeedback.notificationOccurred('warning'); } catch(e) {}
+    }
+    document.getElementById('infoBox').textContent = '❌ Нет совпадений';
+    document.getElementById('infoBox').className = 'info-box lose-text';
+  }
+  
+  updateUI();
+  if (typeof updateLB === 'function') updateLB();
+}
       }
 
       balance += win; 
