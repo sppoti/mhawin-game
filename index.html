@@ -7,128 +7,182 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --tg-bg: #1a0b2e; --tg-text: #ffffff; --tg-btn: #ff3366; --tg-btn-text: #fff;
-      --gold: #ffd700; --neon: #00ff9d; --dark: #0a0510; --glass: rgba(255,255,255,0.06);
-      --sym-h: 92px; --reel-h: calc(var(--sym-h) * 3);
+      --tg-theme-bg-color: #1a0b2e;
+      --tg-theme-text-color: #ffffff;
+      --tg-theme-button-color: #ff3366;
+      --tg-theme-button-text-color: #ffffff;
+      --gold: #ffd700;
+      --neon-green: #00ff9d;
+      --sym-h: 95px;
+      --reel-h: calc(var(--sym-h) * 3);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
-    body { background: radial-gradient(circle at 50% 40%, #1f0d38, var(--dark)); color: var(--tg-text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; min-height: 100vh; padding: 10px; overflow-x: hidden; }
+    body {
+      background: radial-gradient(circle at 50% 40%, #1f0d38, #0a0510);
+      color: var(--tg-theme-text-color);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      padding: 12px;
+      overflow-x: hidden;
+    }
 
-    .header { text-align: center; margin-bottom: 12px; padding: 10px; background: var(--glass); border-radius: 12px; border: 1px solid rgba(255,215,0,0.2); }
-    .user-info { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 6px; }
-    .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), var(--tg-btn)); display: flex; align-items: center; justify-content: center; font-weight: bold; color: #000; font-size: 0.9rem; }
-    h1 { font-size: 1.4rem; background: linear-gradient(90deg, var(--gold), var(--tg-btn)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .header {
+      text-align: center;
+      margin-bottom: 15px;
+      padding: 12px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      border: 1px solid rgba(255,215,0,0.2);
+    }
+    .user-info {
+      display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 8px;
+    }
+    .avatar {
+      width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), var(--tg-theme-button-color));
+      display: flex; align-items: center; justify-content: center; font-weight: bold; color: #000;
+    }
+    .username { font-weight: 600; font-size: 1rem; }
+    h1 {
+      font-size: 1.6rem;
+      background: linear-gradient(90deg, var(--gold), var(--tg-theme-button-color));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      margin-top: 8px;
+    }
 
-    .nav-toggle { display: flex; gap: 6px; margin-bottom: 12px; background: var(--glass); padding: 4px; border-radius: 10px; }
-    .nav-btn { flex: 1; padding: 8px; border: none; background: transparent; color: #888; font-weight: 600; cursor: pointer; border-radius: 8px; transition: all 0.2s; }
-    .nav-btn.active { background: rgba(255,255,255,0.12); color: var(--gold); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-
-    .view { display: none; animation: fadeIn 0.3s; }
-    .view.active { display: block; }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-
-    .hud { display: flex; justify-content: space-between; align-items: center; background: var(--glass); border-radius: 10px; padding: 8px 10px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
+    .hud {
+      display: flex; justify-content: space-around; align-items: center;
+      background: rgba(255,255,255,0.05); border-radius: 12px; padding: 10px; margin-bottom: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
     .hud-item { text-align: center; }
-    .hud-label { font-size: 0.65rem; color: #aaa; text-transform: uppercase; }
-    .hud-value { font-size: 1.2rem; font-weight: 800; color: var(--gold); text-shadow: 0 0 6px rgba(255,215,0,0.4); }
+    .hud-label { font-size: 0.7rem; color: #aaa; text-transform: uppercase; }
+    .hud-value { font-size: 1.3rem; font-weight: 800; color: var(--gold); text-shadow: 0 0 8px rgba(255,215,0,0.4); }
 
-    .slot-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin: 10px auto; max-width: 580px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 10px; border: 2px solid rgba(255,215,0,0.2); }
-    .reel { height: var(--reel-h); background: linear-gradient(180deg, #0a0a15, #151525, #0a0a15); border: 1.5px solid rgba(255,215,0,0.3); border-radius: 8px; overflow: hidden; position: relative; }
-    .reel::before, .reel::after { content: ''; position: absolute; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.1); z-index: 2; }
-    .reel::before { top: 33.33%; } .reel::after { top: 66.66%; }
+    .slot-grid {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
+      margin: 12px auto; max-width: 600px;
+      background: rgba(0,0,0,0.3); padding: 10px; border-radius: 12px;
+      border: 2px solid rgba(255,215,0,0.2);
+    }
+    .reel {
+      height: var(--reel-h); background: linear-gradient(180deg, #0a0a15, #151525, #0a0a15);
+      border: 2px solid rgba(255,215,0,0.3); border-radius: 8px; overflow: hidden; position: relative;
+    }
+    .reel::before, .reel::after {
+      content: ''; position: absolute; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.1); z-index: 2;
+    }
+    .reel::before { top: 33.33%; }
+    .reel::after { top: 66.66%; }
     .strip { display: flex; flex-direction: column; will-change: transform; }
-    .sym { height: var(--sym-h); display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 0.85rem; font-weight: 800; color: #eee; border-bottom: 1px solid rgba(255,255,255,0.05); text-shadow: 0 2px 4px rgba(0,0,0,0.9); }
-    .sym.rare { color: var(--neon); text-shadow: 0 0 6px var(--neon); }
-    .sym.win { animation: winPulse 0.4s infinite alternate; background: rgba(255,215,0,0.15); }
-    @keyframes winPulse { 0% { transform: scale(1); } 100% { transform: scale(1.04); } }
+    .sym {
+      height: var(--sym-h); display: flex; flex-direction: column; justify-content: center; align-items: center;
+      font-size: 0.9rem; font-weight: 800; color: #eee; border-bottom: 1px solid rgba(255,255,255,0.05);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+    }
+    .sym.rare { color: var(--neon-green); text-shadow: 0 0 8px var(--neon-green); }
+    .sym.win { animation: winPulse 0.5s infinite alternate; background: rgba(255,215,0,0.15); }
+    @keyframes winPulse {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.05); }
+    }
 
-    .controls { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
-    .bet-row { display: flex; justify-content: center; align-items: center; gap: 12px; }
-    .btn-mini { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
-    .btn-mini:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
-    .btn-mini:disabled { opacity: 0.3; cursor: not-allowed; }
-    .spin-btn { width: 100%; padding: 14px; font-size: 1.2rem; font-weight: 800; background: linear-gradient(135deg, var(--tg-btn), #ff6b81); color: var(--tg-btn-text); border: none; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 12px rgba(255, 51, 102, 0.4); transition: all 0.2s; text-transform: uppercase; }
+    .controls {
+      display: flex; flex-direction: column; gap: 10px; margin-top: 12px;
+    }
+    .bet-controls {
+      display: flex; justify-content: center; align-items: center; gap: 15px;
+    }
+    .btn {
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+      color: #fff; width: 40px; height: 40px; border-radius: 50%;
+      font-size: 1.2rem; cursor: pointer; transition: all 0.2s;
+    }
+    .btn:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
+    .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .spin-btn {
+      width: 100%; padding: 16px; font-size: 1.3rem; font-weight: 800;
+      background: linear-gradient(135deg, var(--tg-theme-button-color), #ff6b81);
+      color: var(--tg-theme-button-text-color); border: none; border-radius: 12px;
+      cursor: pointer; box-shadow: 0 4px 15px rgba(255, 51, 102, 0.4);
+      transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px;
+    }
     .spin-btn:active:not(:disabled) { transform: scale(0.98); }
     .spin-btn:disabled { background: #444; cursor: not-allowed; box-shadow: none; }
 
-    .info-box { margin-top: 8px; padding: 8px; background: var(--glass); border-radius: 8px; text-align: center; font-size: 0.9rem; min-height: 40px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); }
-    .win-text { color: var(--neon); font-weight: 600; } .lose-text { color: #ff6666; }
+    .info-box {
+      margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.05);
+      border-radius: 8px; text-align: center; font-size: 0.95rem; min-height: 45px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .win-text { color: var(--neon-green); font-weight: 600; }
+    .lose-text { color: #ff6666; }
 
-    .lb-container { background: var(--glass); border-radius: 12px; padding: 12px; border: 1px solid rgba(255,215,0,0.2); }
-    .lb-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-    .lb-title { font-weight: 800; color: var(--gold); font-size: 1.1rem; }
-    .lb-timer { background: rgba(0,0,0,0.4); padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; color: #aaa; }
-    .lb-list { list-style: none; }
-    .lb-item { display: flex; align-items: center; padding: 8px 6px; border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s; }
-    .lb-item:last-child { border-bottom: none; }
-    .lb-rank { width: 24px; font-weight: 900; color: #888; text-align: center; }
-    .lb-rank.top1 { color: var(--gold); text-shadow: 0 0 8px var(--gold); }
-    .lb-rank.top2 { color: #c0c0c0; }
-    .lb-rank.top3 { color: #cd7f32; }
-    .lb-name { flex: 1; margin-left: 8px; font-weight: 600; }
-    .lb-score { font-weight: 800; color: var(--neon); }
-    .lb-me { background: rgba(255,215,0,0.15); border-radius: 6px; border-left: 3px solid var(--gold); }
-    .lb-empty { text-align: center; color: #777; padding: 20px; font-size: 0.9rem; }
-
-    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); backdrop-filter: blur(10px); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    .overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.95); backdrop-filter: blur(10px);
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
     .overlay.visible { opacity: 1; pointer-events: auto; }
-    .overlay-title { font-size: 2.2rem; font-weight: 900; letter-spacing: 2px; background: linear-gradient(45deg, var(--gold), #ff007a, var(--neon)); background-size: 300% 300%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: gradShift 2s ease infinite, popIn 0.5s ease; text-align: center; }
-    .overlay-coins { margin-top: 12px; font-size: 1.5rem; color: var(--neon); font-weight: 800; animation: fadeIn 0.5s 0.2s both; }
-    @keyframes gradShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+    .overlay-title {
+      font-size: 2.5rem; font-weight: 900; letter-spacing: 3px;
+      background: linear-gradient(45deg, var(--gold), #ff007a, var(--neon-green));
+      background-size: 300% 300%;
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      animation: gradientShift 2s ease infinite, popIn 0.5s ease;
+      text-align: center;
+    }
+    .overlay-coins {
+      margin-top: 15px; font-size: 1.8rem; color: var(--neon-green);
+      font-weight: 800; animation: fadeIn 0.6s 0.3s both;
+    }
+    @keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
     @keyframes popIn { 0%{transform:scale(0)} 80%{transform:scale(1.1)} 100%{transform:scale(1)} }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(15px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
 
-    .legend { margin-top: 10px; font-size: 0.7rem; color: #888; text-align: center; background: rgba(0,0,0,0.2); padding: 6px; border-radius: 6px; }
+    .legend {
+      margin-top: 12px; font-size: 0.7rem; color: #888; text-align: center;
+      background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px;
+    }
   </style>
 </head>
 <body>
   <div class="header">
     <div class="user-info">
       <div class="avatar" id="userAvatar">👤</div>
-      <div id="userName">Игрок</div>
+      <div class="username" id="userName">Игрок</div>
     </div>
-    <h1>🎰 MHAWIN CASINO</h1>
+    <h1>🎰 MHAWIN CASINO 🎰</h1>
   </div>
 
-  <div class="nav-toggle">
-    <button class="nav-btn active" id="navGame">🎰 Слот</button>
-    <button class="nav-btn" id="navLeaderboard">🏆 Турнир</button>
+  <div class="hud">
+    <div class="hud-item">
+      <div class="hud-label">Баланс</div>
+      <div class="hud-value" id="balance">10000</div>
+    </div>
+    <div class="hud-item">
+      <div class="hud-label">Ставка</div>
+      <div class="hud-value" id="betDisplay">50</div>
+    </div>
   </div>
 
-  <!-- ИГРА -->
-  <div id="gameView" class="view active">
-    <div class="hud">
-      <div class="hud-item"><div class="hud-label">Баланс</div><div class="hud-value" id="balance">10000</div></div>
-      <div class="hud-item"><div class="hud-label">Ставка</div><div class="hud-value" id="betDisplay">50</div></div>
-      <div class="hud-item"><div class="hud-label">Турнир</div><div class="hud-value" id="tournScore">0</div></div>
+  <div class="slot-grid" id="slotGrid"></div>
+
+  <div class="controls">
+    <div class="bet-controls">
+      <button class="btn" id="betDown">➖</button>
+      <span style="font-size: 0.9rem; color: #aaa;">ИЗМЕНИТЬ СТАВКУ</span>
+      <button class="btn" id="betUp">➕</button>
     </div>
-
-    <div class="slot-grid" id="slotGrid"></div>
-
-    <div class="controls">
-      <div class="bet-row">
-        <button class="btn-mini" id="betDown">➖</button>
-        <span style="font-size:0.85rem;color:#aaa;">СТАВКА</span>
-        <button class="btn-mini" id="betUp">➕</button>
-      </div>
-      <button class="spin-btn" id="spinBtn">🐘 КРУТИТЬ</button>
-    </div>
-
-    <div class="info-box" id="infoBox">Нажмите "КРУТИТЬ" для старта</div>
+    <button class="spin-btn" id="spinBtn">🐘 КРУТИТЬ</button>
   </div>
 
-  <!-- ЛИДЕРБОРД -->
-  <div id="leaderboardView" class="view">
-    <div class="lb-container">
-      <div class="lb-header">
-        <div class="lb-title">🏆 ТОП ИГРОКОВ</div>
-        <div class="lb-timer" id="timer">00:00:00</div>
-      </div>
-      <ul class="lb-list" id="lbList">
-        <li class="lb-empty">Загрузка рейтинга...</li>
-      </ul>
-      <div style="text-align:center;margin-top:10px;font-size:0.8rem;color:#777;">Турнир сбрасывается ежедневно в 00:00 UTC</div>
-    </div>
+  <div class="info-box" id="infoBox">Нажмите "КРУТИТЬ" для старта</div>
+
+  <div class="legend">
+    🍒 Кадык | 𓇤 Горбунова (редкие x3) | 💩 Сын Панфилы | ᯡ Панфило<br>
+    5 линий: 3 горизонтали + 2 зигзага
   </div>
 
   <div class="overlay" id="winOverlay">
@@ -136,315 +190,242 @@
     <div class="overlay-coins" id="overlayCoins">+0</div>
   </div>
 
-  <div class="legend">🍒 Кадыко | 𓇤 Горбунова (редкие x3) | 💩 Сын Панфилы | ᯡ Панфило | 5 линий</div>
-
   <script>
-    // === TELEGRAM INIT ===
+    // === TELEGRAM INTEGRATION ===
     const tg = window.Telegram.WebApp;
-    tg.expand();
-    if (tg.themeParams) {
-      if (tg.themeParams.bg_color) document.documentElement.style.setProperty('--tg-bg', tg.themeParams.bg_color);
-      if (tg.themeParams.button_color) document.documentElement.style.setProperty('--tg-btn', tg.themeParams.button_color);
+    tg.expand(); // Развернуть на весь экран
+
+    // Получаем данные пользователя
+    const user = tg.initDataUnsafe.user;
+    if (user) {
+      document.getElementById('userName').textContent = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+      if (user.photo_url) {
+        document.getElementById('userAvatar').style.backgroundImage = `url(${user.photo_url})`;
+        document.getElementById('userAvatar').style.backgroundSize = 'cover';
+        document.getElementById('userAvatar').textContent = '';
+      } else if (user.username) {
+        document.getElementById('userAvatar').textContent = user.username[0].toUpperCase();
+      }
     }
+
+    // Настройка цветов под тему Telegram
+    if (tg.themeParams) {
+      if (tg.themeParams.bg_color) document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color);
+      if (tg.themeParams.text_color) document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color);
+      if (tg.themeParams.button_color) document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color);
+      if (tg.themeParams.button_text_color) document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color);
+    }
+
+    // Готовность
     tg.ready();
 
-    const user = tg.initDataUnsafe.user;
-    const userName = user ? (user.first_name + (user.last_name ? ' ' + user.last_name : '')) : 'Аноним';
-    document.getElementById('userName').textContent = userName;
-    if (user?.photo_url) {
-      const av = document.getElementById('userAvatar');
-      av.style.backgroundImage = `url(${user.photo_url})`; av.style.backgroundSize = 'cover'; av.textContent = '';
-    } else if (user?.username) {
-      document.getElementById('userAvatar').textContent = user.username[0].toUpperCase();
-    }
-
-    // === API CONFIG ===
-    const API_URL = 'https://mhawin-api.onrender.com';
-
-    // === GAME CONFIG ===
+    // === ИГРОВАЯ ЛОГИКА ===
     const SYMBOLS = [
-      { text: "Кадыко 🍒", weight: 5, cls: "rare", mult: 3 },
+      { text: "Кадык 🍒", weight: 5, cls: "rare", mult: 3 },
       { text: "Горбунова 𓇤", weight: 5, cls: "rare", mult: 3 },
       { text: "Сын Панфилы 💩", weight: 45, cls: "", mult: 1 },
       { text: "Панфило ᯡ", weight: 45, cls: "", mult: 1 }
     ];
+
     const PAYLINES = [
-      [[0,0],[1,0],[2,0],[3,0],[4,0]], [[0,1],[1,1],[2,1],[3,1],[4,1]], [[0,2],[1,2],[2,2],[3,2],[4,2]],
-      [[0,0],[1,1],[2,2],[3,1],[4,0]], [[0,2],[1,1],[2,0],[3,1],[4,2]]
+      [[0,0],[1,0],[2,0],[3,0],[4,0]],
+      [[0,1],[1,1],[2,1],[3,1],[4,1]],
+      [[0,2],[1,2],[2,2],[3,2],[4,2]],
+      [[0,0],[1,1],[2,2],[3,1],[4,0]],
+      [[0,2],[1,1],[2,0],[3,1],[4,2]]
     ];
 
-    let balance = 10000, bet = 50, isSpinning = false, tournScore = 0;
-    const SYM_H = 92, FILL = 22, STAG = [1100,1400,1700,2000,2300];
+    let balance = 10000;
+    let bet = 50;
+    let isSpinning = false;
+    const SYM_H = 95;
+    const FILL_COUNT = 24;
+    const STAGGER = [1200, 1600, 2000, 2400, 2800];
 
-    // === AUDIO ===
+    // Аудио (упрощённое)
     let audioCtx;
-    function snd(freqs, type='sawtooth', vol=0.15) {
+    function playSound() {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       const t = audioCtx.currentTime;
-      freqs.forEach((f, i) => {
-        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-        o.type = type; o.frequency.value = f;
-        g.gain.setValueAtTime(0, t+i*0.08); g.gain.linearRampToValueAtTime(vol, t+i*0.08+0.04);
-        g.gain.exponentialRampToValueAtTime(0.001, t+i*0.08+0.25);
-        o.connect(g); g.connect(audioCtx.destination); o.start(t+i*0.08); o.stop(t+i*0.08+0.3);
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(100, t);
+      osc.frequency.linearRampToValueAtTime(200, t + 0.1);
+      gain.gain.setValueAtTime(0.15, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + 0.3);
+    }
+
+    function playWin() {
+      if (!audioCtx) return;
+      const t = audioCtx.currentTime;
+      [523, 659, 784, 1047].forEach((f, i) => {
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.frequency.value = f;
+        g.gain.setValueAtTime(0, t + i*0.1);
+        g.gain.linearRampToValueAtTime(0.15, t + i*0.1 + 0.05);
+        g.gain.exponentialRampToValueAtTime(0.001, t + i*0.1 + 0.3);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(t + i*0.1); o.stop(t + i*0.1 + 0.3);
       });
     }
 
-    // === LOGIC ===
-    function wRand() {
-      const tot = SYMBOLS.reduce((s,x)=>s+x.weight,0); let r = Math.random()*tot;
-      for (const s of SYMBOLS) { r-=s.weight; if(r<=0) return {...s}; } return {...SYMBOLS[0]};
+    function weightedRandom() {
+      const total = SYMBOLS.reduce((s, x) => s + x.weight, 0);
+      let r = Math.random() * total;
+      for (const sym of SYMBOLS) {
+        r -= sym.weight;
+        if (r <= 0) return {...sym};
+      }
+      return {...SYMBOLS[0]};
     }
 
     function createGrid() {
-      const g = document.getElementById('slotGrid'); g.innerHTML='';
-      for(let c=0;c<5;c++){
-        const r = document.createElement('div'); r.className='reel';
-        const s = document.createElement('div'); s.className='strip'; s.id=`s${c}`; s.style.transition='none'; s.style.transform='translateY(0)';
-        for(let j=0;j<3;j++) app(s, wRand());
-        r.appendChild(s); g.appendChild(r);
+      const grid = document.getElementById('slotGrid');
+      grid.innerHTML = '';
+      for (let c = 0; c < 5; c++) {
+        const reel = document.createElement('div');
+        reel.className = 'reel';
+        const strip = document.createElement('div');
+        strip.className = 'strip';
+        strip.id = `s${c}`;
+        for (let r = 0; r < 3; r++) {
+          appendSym(strip, weightedRandom());
+        }
+        reel.appendChild(strip);
+        grid.appendChild(reel);
       }
     }
-    function app(s, sym) { const d=document.createElement('div'); d.className=`sym ${sym.cls}`; d.textContent=sym.text; s.appendChild(d); }
+
+    function appendSym(strip, sym) {
+      const d = document.createElement('div');
+      d.className = `sym ${sym.cls}`;
+      d.textContent = sym.text;
+      strip.appendChild(d);
+    }
 
     async function spin() {
-      if(isSpinning||balance<bet) { tg.HapticFeedback?.notificationOccurred('error'); return; }
-      isSpinning=true; balance-=bet; updateUI();
-      snd([90,140,110]); tg.HapticFeedback?.impactOccurred('medium');
-      document.getElementById('infoBox').textContent='🐘 Вращение...'; document.getElementById('infoBox').className='info-box';
+      if (isSpinning || balance < bet) {
+        tg.HapticFeedback.notificationOccurred('error');
+        return;
+      }
+
+      isSpinning = true;
+      balance -= bet;
+      updateUI();
+      playSound();
+      tg.HapticFeedback.impactOccurred('medium');
+
+      document.getElementById('infoBox').textContent = '🐘 Вращение...';
+      document.getElementById('infoBox').className = 'info-box';
       document.getElementById('winOverlay').classList.remove('visible');
 
-      const final = Array.from({length:5}, ()=>Array.from({length:3}, ()=>wRand()));
-      const pr = [];
-      for(let c=0;c<5;c++){
-        const s=document.getElementById(`s${c}`); s.innerHTML=''; s.style.transition='none'; s.style.transform='translateY(0)';
-        for(let i=0;i<FILL;i++) app(s,wRand()); final[c].forEach(x=>app(s,x));
-        void s.offsetHeight;
-        setTimeout(()=>{ s.style.transition=`transform ${STAG[4]-STAG[c]+900}ms cubic-bezier(0.15,0.85,0.35,1)`; s.style.transform=`translateY(-${FILL*SYM_H}px)`; },25);
-        pr.push(new Promise(res=>{ s.addEventListener('transitionend',res,{once:true}); setTimeout(res, STAG[c]+1200); }));
+      const finalGrid = Array.from({length: 5}, () => Array.from({length: 3}, () => weightedRandom()));
+      const promises = [];
+
+      for (let c = 0; c < 5; c++) {
+        const strip = document.getElementById(`s${c}`);
+        strip.innerHTML = '';
+        strip.style.transition = 'none';
+        strip.style.transform = 'translateY(0)';
+        for (let i = 0; i < FILL_COUNT; i++) appendSym(strip, weightedRandom());
+        finalGrid[c].forEach(s => appendSym(strip, s));
+
+        void strip.offsetHeight;
+
+        setTimeout(() => {
+          strip.style.transition = `transform ${STAGGER[4] - STAGGER[c] + 1000}ms cubic-bezier(0.15, 0.85, 0.35, 1)`;
+          strip.style.transform = `translateY(-${FILL_COUNT * SYM_H}px)`;
+        }, 30);
+
+        promises.push(new Promise(res => {
+          strip.addEventListener('transitionend', res, { once: true });
+          setTimeout(res, STAGGER[c] + 1500);
+        }));
       }
-      await Promise.all(pr); isSpinning=false; await evalWin(final); updateUI();
+
+      await Promise.all(promises);
+      isSpinning = false;
+      evaluate(finalGrid);
+      updateUI();
     }
 
-    async function evalWin(grid) {
-  let win = 0; 
-  const wc = new Set();
-  
-  for (const ln of PAYLINES) {
-    const f = grid[ln[0][0]][ln[0][1]]; 
-    let cnt = 1;
-    for (let i = 1; i < 5; i++) { 
-      if (grid[ln[i][0]][ln[i][1]].text === f.text) cnt++; 
-      else break; 
-    }
-    if (cnt >= 3) {
-      const b = cnt === 3 ? 2 : cnt === 4 ? 8 : 40; 
-      win += b * bet * f.mult;
-      for (let i = 0; i < cnt; i++) wc.add(`${ln[i][0]},${ln[i][1]}`);
-    }
-  }
+    function evaluate(grid) {
+      let win = 0;
+      const winCoords = new Set();
 
-  balance += win; 
-  tournScore += win;
-
-  if (win > 0) {
-    // Отправка на сервер с таймаутом
-    if (API_URL) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 секунды
-        
-        await fetch(`${API_URL}/api/submit`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ initData: tg.initData, winAmount: win }),
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-      } catch (e) {
-        console.warn('Server sync failed (continuing offline):', e);
-        // НЕ прерываем игру, просто работаем офлайн
-      }
-    }
-
-    // Звук и анимация (выполняем всегда)
-    try {
-      snd([523, 659, 784, 1047], 'triangle', 0.12);
-    } catch(e) {}
-    
-    if (tg.HapticFeedback) {
-      try { tg.HapticFeedback.notificationOccurred('success'); } catch(e) {}
-    }
-
-    wc.forEach(k => {
-      const [c, r] = k.split(',').map(Number);
-      const sym = document.getElementById(`s${c}`).children[r + FILL];
-      if (sym) sym.classList.add('win');
-    });
-
-    document.getElementById('overlayCoins').textContent = `+${win}`;
-    document.getElementById('winOverlay').classList.add('visible');
-    setTimeout(() => document.getElementById('winOverlay').classList.remove('visible'), 2500);
-
-    document.getElementById('infoBox').innerHTML = `🎉 ВЫИГРЫШ: <span style="color:#00ff9d">+${win}</span>`;
-    document.getElementById('infoBox').className = 'info-box win-text';
-  } else {
-    if (tg.HapticFeedback) {
-      try { tg.HapticFeedback.notificationOccurred('warning'); } catch(e) {}
-    }
-    document.getElementById('infoBox').textContent = '❌ Нет совпадений';
-    document.getElementById('infoBox').className = 'info-box lose-text';
-  }
-  
-  updateUI();
-  if (typeof updateLB === 'function') updateLB();
-}
-      
-
-      balance += win; 
-      tournScore += win;
-
-      if (win > 0) {
-        // Отправка на сервер
-        if (API_URL) {
-          try {
-            await fetch(`${API_URL}/api/submit`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ initData: tg.initData, winAmount: win })
-            });
-          } catch (e) {
-            console.warn('Server sync failed:', e);
+      for (const line of PAYLINES) {
+        const first = grid[line[0][0]][line[0][1]];
+        let count = 1;
+        for (let i = 1; i < 5; i++) {
+          if (grid[line[i][0]][line[i][1]].text === first.text) count++;
+          else break;
+        }
+        if (count >= 3) {
+          const base = count === 3 ? 2 : count === 4 ? 8 : 40;
+          win += base * bet * first.mult;
+          for (let i = 0; i < count; i++) {
+            winCoords.add(`${line[i][0]},${line[i][1]}`);
           }
         }
+      }
 
-        snd([523, 659, 784, 1047], 'triangle', 0.12);
-        if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+      balance += win;
 
-        wc.forEach(k => {
-          const [c, r] = k.split(',').map(Number);
-          const sym = document.getElementById(`s${c}`).children[r + FILL];
+      if (win > 0) {
+        playWin();
+        tg.HapticFeedback.notificationOccurred('success');
+        winCoords.forEach(key => {
+          const [c, r] = key.split(',').map(Number);
+          const strip = document.getElementById(`s${c}`);
+          const sym = strip.children[r + FILL_COUNT];
           if (sym) sym.classList.add('win');
         });
-
-        document.getElementById('overlayCoins').textContent = `+${win}`;
-        document.getElementById('winOverlay').classList.add('visible');
-        setTimeout(() => document.getElementById('winOverlay').classList.remove('visible'), 2500);
-
+        showOverlay(win);
         document.getElementById('infoBox').innerHTML = `🎉 ВЫИГРЫШ: <span style="color:#00ff9d">+${win}</span>`;
         document.getElementById('infoBox').className = 'info-box win-text';
       } else {
-        if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
+        tg.HapticFeedback.notificationOccurred('warning');
         document.getElementById('infoBox').textContent = '❌ Нет совпадений';
         document.getElementById('infoBox').className = 'info-box lose-text';
       }
-      
-      if (typeof updateLB === 'function') updateLB();
     }
 
-    // === SERVER FUNCTIONS ===
-    async function initServer() {
-      try {
-        const res = await fetch(`${API_URL}/api/verify`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ initData: tg.initData })
-        });
-        if (!res.ok) throw new Error('Verify failed');
-        const data = await res.json();
-        balance = data.user.balance;
-        tournScore = data.score.score;
-        updateUI();
-        renderLB();
-      } catch (e) {
-        console.warn('Server offline, working offline:', e.message);
-      }
+    function showOverlay(amount) {
+      document.getElementById('overlayCoins').textContent = `+${amount}`;
+      const ov = document.getElementById('winOverlay');
+      ov.classList.add('visible');
+      setTimeout(() => ov.classList.remove('visible'), 3000);
     }
 
-    async function fetchLeaderboard() {
-      try {
-        const res = await fetch(`${API_URL}/api/leaderboard`);
-        if (res.ok) {
-          const lb = await res.json();
-          const list = document.getElementById('lbList');
-          list.innerHTML = '';
-          if (lb.length === 0) {
-            list.innerHTML = '<li class="lb-empty">Пока нет игроков. Будьте первым!</li>';
-            return;
-          }
-          lb.forEach((p, i) => {
-            const li = document.createElement('li');
-            li.className = 'lb-item' + (p.username === userName ? ' lb-me' : '');
-            li.innerHTML = `
-              <div class="lb-rank ${i<1?'top1':i<2?'top2':i<3?'top3':''}">${i+1}</div>
-              <div class="lb-name">${p.username || 'Аноним'}</div>
-              <div class="lb-score">${p.score}</div>
-            `;
-            list.appendChild(li);
-          });
-        }
-      } catch (e) { console.warn('LB fetch error:', e); }
-    }
-
-    function updateLB() {
-      fetchLeaderboard();
-    }
-
-    function renderLB() {
-      fetchLeaderboard();
-    }
-
-    function startTimer() {
-      const tick = () => {
-        const now = new Date(), next = new Date(now); next.setUTCDate(next.getUTCDate()+1); next.setUTCHours(0,0,0,0);
-        const diff = next - now;
-        const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
-        document.getElementById('timer').textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-      };
-      tick(); setInterval(tick, 1000);
-    }
-
-    // === UI & NAV ===
     function updateUI() {
-      document.getElementById('balance').textContent=balance; 
-      document.getElementById('betDisplay').textContent=bet;
-      document.getElementById('tournScore').textContent=tournScore;
-      document.getElementById('spinBtn').disabled=isSpinning||balance<bet;
-      document.getElementById('betDown').disabled=bet<=10||isSpinning;
-      document.getElementById('betUp').disabled=bet>=balance||isSpinning;
+      document.getElementById('balance').textContent = balance;
+      document.getElementById('betDisplay').textContent = bet;
+      document.getElementById('spinBtn').disabled = isSpinning || balance < bet;
+      document.getElementById('betDown').disabled = bet <= 10 || isSpinning;
+      document.getElementById('betUp').disabled = bet >= balance || isSpinning;
     }
 
-    document.getElementById('navGame').addEventListener('click', ()=>{
-      document.getElementById('gameView').classList.add('active'); 
-      document.getElementById('leaderboardView').classList.remove('active');
-      document.getElementById('navGame').classList.add('active'); 
-      document.getElementById('navLeaderboard').classList.remove('active');
-    });
-    
-    document.getElementById('navLeaderboard').addEventListener('click', ()=>{
-      document.getElementById('leaderboardView').classList.add('active'); 
-      document.getElementById('gameView').classList.remove('active');
-      document.getElementById('navLeaderboard').classList.add('active'); 
-      document.getElementById('navGame').classList.remove('active');
-      renderLB();
-    });
-
+    // === EVENT LISTENERS ===
     document.getElementById('spinBtn').addEventListener('click', spin);
-    document.getElementById('betDown').addEventListener('click', ()=>{ if(bet>10) bet-=10; updateUI(); });
-    document.getElementById('betUp').addEventListener('click', ()=>{ if(bet<balance) bet+=10; updateUI(); });
+    document.getElementById('betDown').addEventListener('click', () => { if (bet > 10) bet -= 10; updateUI(); });
+    document.getElementById('betUp').addEventListener('click', () => { if (bet < balance) bet += 10; updateUI(); });
 
-    // === INIT ===
-    createGrid(); 
-    updateUI(); 
-    startTimer();
-    initServer();
-    
-    if (tg.MainButton) {
-      tg.MainButton.setText("🎰 КРУТИТЬ"); 
-      tg.MainButton.show(); 
+    // Инициализация
+    createGrid();
+    updateUI();
+
+    // Сообщаем Telegram о готовности
+    setTimeout(() => {
+      tg.MainButton.setText("🎰 КРУТИТЬ");
       tg.MainButton.onClick(spin);
-    }
+      tg.MainButton.show();
+    }, 500);
   </script>
 </body>
 </html>
