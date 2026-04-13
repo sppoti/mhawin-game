@@ -46,6 +46,7 @@
     .bet-row { display: flex; justify-content: center; align-items: center; gap: 12px; }
     .btn-mini { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
     .btn-mini:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
+    .btn-mini:disabled { opacity: 0.3; cursor: not-allowed; }
     .spin-btn { width: 100%; padding: 14px; font-size: 1.2rem; font-weight: 800; background: linear-gradient(135deg, var(--tg-btn), #ff6b81); color: var(--tg-btn-text); border: none; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 12px rgba(255, 51, 102, 0.4); transition: all 0.2s; text-transform: uppercase; }
     .spin-btn:active:not(:disabled) { transform: scale(0.98); }
     .spin-btn:disabled { background: #444; cursor: not-allowed; box-shadow: none; }
@@ -153,11 +154,12 @@
     if (user?.photo_url) {
       const av = document.getElementById('userAvatar');
       av.style.backgroundImage = `url(${user.photo_url})`; av.style.backgroundSize = 'cover'; av.textContent = '';
-    } else if (user?.username) document.getElementById('userAvatar').textContent = user.username[0].toUpperCase();
+    } else if (user?.username) {
+      document.getElementById('userAvatar').textContent = user.username[0].toUpperCase();
+    }
 
-    // === SERVER CONFIG ===
-    // 🔥 ВСТАВЬТЕ СЮДА ССЫЛКУ НА ВАШ СЕРВЕР ПОСЛЕ ДЕПЛОЯ:
-    const API_URL = 'https://mhawin-api.onrender.com'; // ← ЗАМЕНИТЕ ЭТУ СТРОКУ
+    // === API CONFIG ===
+    const API_URL = 'https://mhawin-api.onrender.com';
 
     // === GAME CONFIG ===
     const SYMBOLS = [
@@ -225,89 +227,114 @@
     }
 
     async function evalWin(grid) {
-      let win=0; const wc=new Set();
-      for(const ln of PAYLINES){
-        const f=grid[ln[0][0]][ln[0][1]]; let cnt=1;
-        for(let i=1;i<5;i++){ if(grid[ln[i][0]][ln[i][1]].text===f.text) cnt++; else break; }
-        if(cnt>=3){
-          const b=cnt===3?2:cnt===4?8:40; win+=b*bet*f.mult;
-          for(let i=0;i<cnt;i++) wc.add(`${ln[i][0]},${ln[i][1]}`);
-        }
-      }
-      balance+=win; tournScore+=win;
+      let win = 0; 
+      const wc = new Set();
       
-      if(win>0){
-             if (win > 0) {
-            // Отправляем на сервер (если доступен)
-            if (API_URL) { 
-                try { // <--- 1. Добавили try
-                    await fetch(`${API_URL}/api/submit`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' }, // <--- 2. Убрали лишнюю скобку }
-                        body: JSON.stringify({ initData: tg.initData, winAmount: win })
-                    });
-                } catch(e) { 
-                    console.warn('Server_sync_failed:', e); 
-                }
-            }
-
-            // Звук и вибрация
-            snd([523, 659, 784, 1047], 'triangle', 0.12); 
-            tg.HapticFeedback?.notificationOccurred('success');
-            
-            // Подсветка выигрышных символов
-            wc.forEach(k => { 
-                const [c, r] = k.split(',').map(Number); 
-                const sym = document.getElementById(`s${c}`).children[r + FILL]; 
-                if (sym) sym.classList.add('win'); 
-            }); 
-            
-            // Оверлей и текст
-            document.getElementById('overlayCoins').textContent = `+${win}`; 
-            document.getElementById('winOverlay').classList.add('visible'); 
-            setTimeout(() => document.getElementById('winOverlay').classList.remove('visible'), 2500);
-            
-            document.getElementById('infoBox').innerHTML = `🎉 ВЫИГРЫШ: <span style="color:#00ff9d">+${win}</span>`;
-            document.getElementById('infoBox').className = 'info-box win-text';
-        } else {
-            // Проигрыш
-            tg.HapticFeedback?.notificationOccurred('warning');
-            document.getElementById('infoBox').textContent = '❌ Нет совпадений'; 
-            document.getElementById('infoBox').className = 'info-box lose-text';
+      for (const ln of PAYLINES) {
+        const f = grid[ln[0][0]][ln[0][1]]; 
+        let cnt = 1;
+        for (let i = 1; i < 5; i++) { 
+          if (grid[ln[i][0]][ln[i][1]].text === f.text) cnt++; 
+          else break; 
         }
-    // === LEADERBOARD ===
-    async function updateLB() {
-      // Если сервер настроен — загружаем с него
-      if (API_URL && !API_URL.includes('ВАШ_СЕРВЕР')) {
-        try {
-          const res = await fetch(`${API_URL}/api/leaderboard`);
-          if (res.ok) {
-            const lb = await res.json();
-            renderLBList(lb);
-            return;
-          }
-        } catch(e) { console.warn('LB fetch failed:', e); }
+        if (cnt >= 3) {
+          const b = cnt === 3 ? 2 : cnt === 4 ? 8 : 40; 
+          win += b * bet * f.mult;
+          for (let i = 0; i < cnt; i++) wc.add(`${ln[i][0]},${ln[i][1]}`);
+        }
       }
-      // Фоллбэк на localStorage (офлайн-режим)
-      let lb = JSON.parse(localStorage.getItem('mhawin_lb')) || [];
-      const existing = lb.find(p=>p.name===userName);
-      if(existing) { existing.score += tournScore; existing.wins++; }
-      else lb.push({name:userName, score:tournScore, wins:1});
-      lb.sort((a,b)=>b.score-a.score); lb = lb.slice(0,20);
-      localStorage.setItem('mhawin_lb', JSON.stringify(lb));
-      renderLBList(lb);
+
+      balance += win; 
+      tournScore += win;
+
+      if (win > 0) {
+        // Отправка на сервер
+        if (API_URL) {
+          try {
+            await fetch(`${API_URL}/api/submit`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ initData: tg.initData, winAmount: win })
+            });
+          } catch (e) {
+            console.warn('Server sync failed:', e);
+          }
+        }
+
+        snd([523, 659, 784, 1047], 'triangle', 0.12);
+        if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+
+        wc.forEach(k => {
+          const [c, r] = k.split(',').map(Number);
+          const sym = document.getElementById(`s${c}`).children[r + FILL];
+          if (sym) sym.classList.add('win');
+        });
+
+        document.getElementById('overlayCoins').textContent = `+${win}`;
+        document.getElementById('winOverlay').classList.add('visible');
+        setTimeout(() => document.getElementById('winOverlay').classList.remove('visible'), 2500);
+
+        document.getElementById('infoBox').innerHTML = `🎉 ВЫИГРЫШ: <span style="color:#00ff9d">+${win}</span>`;
+        document.getElementById('infoBox').className = 'info-box win-text';
+      } else {
+        if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
+        document.getElementById('infoBox').textContent = '❌ Нет совпадений';
+        document.getElementById('infoBox').className = 'info-box lose-text';
+      }
+      
+      if (typeof updateLB === 'function') updateLB();
     }
 
-    function renderLBList(lb) {
-      const list = document.getElementById('lbList'); list.innerHTML='';
-      if(lb.length===0){ list.innerHTML='<li class="lb-empty">Пока нет игроков. Будьте первым!</li>'; return; }
-      lb.forEach((p,i)=>{
-        const li = document.createElement('li'); li.className='lb-item'+(p.username===userName?' lb-me':'');
-        const rk = document.createElement('div'); rk.className='lb-rank'+(i===0?' top1':i===1?' top2':i===2?' top3':''); rk.textContent=i+1;
-        const nm = document.createElement('div'); nm.className='lb-name'; nm.textContent=p.username || p.name;
-        const sc = document.createElement('div'); sc.className='lb-score'; sc.textContent=p.score;
-        li.append(rk,nm,sc); list.appendChild(li);
-      });
+    // === SERVER FUNCTIONS ===
+    async function initServer() {
+      try {
+        const res = await fetch(`${API_URL}/api/verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ initData: tg.initData })
+        });
+        if (!res.ok) throw new Error('Verify failed');
+        const data = await res.json();
+        balance = data.user.balance;
+        tournScore = data.score.score;
+        updateUI();
+        renderLB();
+      } catch (e) {
+        console.warn('Server offline, working offline:', e.message);
+      }
+    }
+
+    async function fetchLeaderboard() {
+      try {
+        const res = await fetch(`${API_URL}/api/leaderboard`);
+        if (res.ok) {
+          const lb = await res.json();
+          const list = document.getElementById('lbList');
+          list.innerHTML = '';
+          if (lb.length === 0) {
+            list.innerHTML = '<li class="lb-empty">Пока нет игроков. Будьте первым!</li>';
+            return;
+          }
+          lb.forEach((p, i) => {
+            const li = document.createElement('li');
+            li.className = 'lb-item' + (p.username === userName ? ' lb-me' : '');
+            li.innerHTML = `
+              <div class="lb-rank ${i<1?'top1':i<2?'top2':i<3?'top3':''}">${i+1}</div>
+              <div class="lb-name">${p.username || 'Аноним'}</div>
+              <div class="lb-score">${p.score}</div>
+            `;
+            list.appendChild(li);
+          });
+        }
+      } catch (e) { console.warn('LB fetch error:', e); }
+    }
+
+    function updateLB() {
+      fetchLeaderboard();
+    }
+
+    function renderLB() {
+      fetchLeaderboard();
     }
 
     function startTimer() {
@@ -322,7 +349,8 @@
 
     // === UI & NAV ===
     function updateUI() {
-      document.getElementById('balance').textContent=balance; document.getElementById('betDisplay').textContent=bet;
+      document.getElementById('balance').textContent=balance; 
+      document.getElementById('betDisplay').textContent=bet;
       document.getElementById('tournScore').textContent=tournScore;
       document.getElementById('spinBtn').disabled=isSpinning||balance<bet;
       document.getElementById('betDown').disabled=bet<=10||isSpinning;
@@ -330,13 +358,18 @@
     }
 
     document.getElementById('navGame').addEventListener('click', ()=>{
-      document.getElementById('gameView').classList.add('active'); document.getElementById('leaderboardView').classList.remove('active');
-      document.getElementById('navGame').classList.add('active'); document.getElementById('navLeaderboard').classList.remove('active');
+      document.getElementById('gameView').classList.add('active'); 
+      document.getElementById('leaderboardView').classList.remove('active');
+      document.getElementById('navGame').classList.add('active'); 
+      document.getElementById('navLeaderboard').classList.remove('active');
     });
+    
     document.getElementById('navLeaderboard').addEventListener('click', ()=>{
-      document.getElementById('leaderboardView').classList.add('active'); document.getElementById('gameView').classList.remove('active');
-      document.getElementById('navLeaderboard').classList.add('active'); document.getElementById('navGame').classList.remove('active');
-      updateLB();
+      document.getElementById('leaderboardView').classList.add('active'); 
+      document.getElementById('gameView').classList.remove('active');
+      document.getElementById('navLeaderboard').classList.add('active'); 
+      document.getElementById('navGame').classList.remove('active');
+      renderLB();
     });
 
     document.getElementById('spinBtn').addEventListener('click', spin);
@@ -344,25 +377,16 @@
     document.getElementById('betUp').addEventListener('click', ()=>{ if(bet<balance) bet+=10; updateUI(); });
 
     // === INIT ===
-    async function initServer() {
-      if (API_URL && !API_URL.includes('ВАШ_СЕРВЕР')) {
-        try {
-          const res = await fetch(`${API_URL}/api/verify`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ initData: tg.initData })
-          });
-          if (res.ok) {
-            const data = await res.json();
-            balance = data.user.balance;
-            tournScore = data.score.score;
-          }
-        } catch(e) { console.warn('Server init failed, using offline mode'); }
-      }
-      createGrid(); updateUI(); updateLB(); startTimer();
-      tg.MainButton.setText("🎰 КРУТИТЬ"); tg.MainButton.show(); tg.MainButton.onClick(spin);
-    }
+    createGrid(); 
+    updateUI(); 
+    startTimer();
     initServer();
+    
+    if (tg.MainButton) {
+      tg.MainButton.setText("🎰 КРУТИТЬ"); 
+      tg.MainButton.show(); 
+      tg.MainButton.onClick(spin);
+    }
   </script>
 </body>
 </html>
