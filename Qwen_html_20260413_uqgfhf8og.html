@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#2d0a4a">
+  <title>MHAWIN CASINO</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --tg-bg: #2d0a4a;
+      --tg-text: #ffffff;
+      --tg-btn: #ff0066;
+      --tg-btn-text: #ffffff;
+      --gold: #ffd700;
+      --gold-light: #ffed4a;
+      --neon: #00ff9d;
+      --red: #ff3333;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --sym-h: 88px;
+      --reel-h: calc(var(--sym-h) * 3); /* 3 строки! */
+    }
+
+    * {
+      box-sizing: border-box; margin: 0; padding: 0;
+      -webkit-user-select: none; user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      position: fixed; top: 0; left: 0;
+    }
+
+    body {
+      background: 
+        radial-gradient(ellipse at 50% 0%, #ff00aa22 0%, transparent 50%),
+        linear-gradient(180deg, #3d0a5a 0%, #1a0525 100%);
+      color: var(--tg-text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: calc(8px + var(--safe-top)) 12px calc(8px + var(--safe-bottom));
+      display: flex; flex-direction: column; align-items: center;
+      overflow: hidden;
+    }
+
+    .bg-coins {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 60px;
+      background: repeating-linear-gradient(
+        90deg,
+        transparent, transparent 40px,
+        rgba(255,215,0,0.1) 40px, rgba(255,215,0,0.1) 80px
+      );
+      pointer-events: none; z-index: 0;
+    }
+
+    .header {
+      width: 100%; max-width: 430px; text-align: center;
+      padding: 12px; margin-bottom: 10px; flex-shrink: 0;
+      background: linear-gradient(135deg, #6b0a8f, #ff00aa);
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(255,0,170,0.4), inset 0 2px 0 rgba(255,255,255,0.3);
+      border: 3px solid var(--gold);
+      z-index: 10;
+    }
+
+    .user-info {
+      display: flex; align-items: center; justify-content: center;
+      gap: 10px; margin-bottom: 6px;
+    }
+
+    .avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      display: grid; place-items: center;
+      font-weight: 700; color: #000; font-size: 1.2rem;
+      border: 3px solid #fff;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    .username {
+      font-weight: 700; font-size: 1rem; color: #fff;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      background: linear-gradient(180deg, #fff 0%, var(--gold) 50%, var(--gold-light) 100%);
+      -webkit-background-clip: text; background-clip: text;
+      color: transparent; font-weight: 900;
+      text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      letter-spacing: 1px;
+    }
+
+    .hud {
+      display: flex; justify-content: space-around; align-items: center;
+      width: 100%; max-width: 430px;
+      background: linear-gradient(135deg, #4a0a6a, #2d0a4a);
+      border-radius: 14px; padding: 10px; margin-bottom: 12px;
+      border: 2px solid var(--gold);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+      flex-shrink: 0; z-index: 10;
+    }
+
+    .hud-item { text-align: center; min-width: 100px; }
+    .hud-label { 
+      font-size: 0.7rem; color: var(--gold-light); 
+      text-transform: uppercase; margin-bottom: 4px;
+      font-weight: 600; letter-spacing: 1px;
+    }
+    .hud-value { 
+      font-size: 1.4rem; font-weight: 900; color: var(--gold);
+      text-shadow: 0 0 10px rgba(255,215,0,0.6), 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    /* === SLOT === */
+    .slot-wrapper {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      width: 100%; max-width: 430px; min-height: 0;
+      z-index: 10;
+    }
+
+    .slot-frame {
+      background: linear-gradient(135deg, #ff00aa, #6b0a8f);
+      padding: 12px; border-radius: 20px;
+      box-shadow: 0 0 30px rgba(255,0,170,0.5), 0 0 60px rgba(255,0,170,0.3),
+        inset 0 2px 0 rgba(255,255,255,0.3);
+      border: 4px solid var(--gold);
+      position: relative;
+    }
+
+    .slot-frame::before {
+      content: ''; position: absolute; top: -8px; left: 50%;
+      transform: translateX(-50%); width: 60%; height: 20px;
+      background: linear-gradient(180deg, var(--gold), var(--gold-light));
+      border-radius: 10px 10px 0 0;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    .slot-grid {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
+      background: linear-gradient(180deg, #1a0525, #2d0a4a);
+      padding: 10px; border-radius: 12px;
+      border: 3px solid #3d0a5a;
+      box-shadow: inset 0 4px 20px rgba(0,0,0,0.6);
+    }
+
+    /* ====== ИСПРАВЛЕНИЕ: высота = 3 символа ====== */
+    .reel {
+      height: var(--reel-h); /* calc(var(--sym-h) * 3) = 3 строки! */
+      background: linear-gradient(180deg, #fff8dc 0%, #ffe4b5 50%, #fff8dc 100%);
+      border: 3px solid var(--gold);
+      border-radius: 8px;
+      overflow: hidden; position: relative;
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.2), 0 2px 5px rgba(0,0,0,0.3);
+    }
+
+    .reel::before, .reel::after {
+      content: ''; position: absolute; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(255,0,0,0.4), transparent);
+      z-index: 3; pointer-events: none;
+    }
+    .reel::before { top: 33.33%; }
+    .reel::after { top: 66.66%; }
+
+    .strip {
+      display: flex; flex-direction: column;
+      will-change: transform; transform: translateZ(0);
+    }
+
+    .sym {
+      height: var(--sym-h); /* каждый символ ровно 88px */
+      display: flex; justify-content: center; align-items: center;
+      font-size: 3rem; 
+      background: linear-gradient(180deg, rgba(255,255,255,0.1), transparent);
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+      text-shadow: 0 3px 6px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    .sym:last-child { border-bottom: none; }
+    
+    .sym.rare { 
+      filter: drop-shadow(0 0 10px rgba(0,255,157,0.6)) drop-shadow(0 0 20px rgba(0,255,157,0.4));
+      animation: rarePulse 1.5s ease-in-out infinite;
+    }
+    
+    .sym.win {
+      animation: winBounce 0.5s ease-in-out 3 alternate;
+      background: linear-gradient(135deg, rgba(255,215,0,0.4), rgba(255,0,170,0.3));
+      border-radius: 6px;
+      box-shadow: 0 0 20px rgba(255,215,0,0.8);
+      transform: scale(1.1);
+      z-index: 5;
+    }
+
+    @keyframes rarePulse {
+      0%,100% { transform: scale(1); filter: brightness(1) drop-shadow(0 0 10px rgba(0,255,157,0.6)); }
+      50% { transform: scale(1.05); filter: brightness(1.3) drop-shadow(0 0 20px rgba(0,255,157,0.8)); }
+    }
+
+    @keyframes winBounce {
+      0% { transform: scale(1) rotate(0deg); }
+      25% { transform: scale(1.15) rotate(-5deg); }
+      75% { transform: scale(1.15) rotate(5deg); }
+      100% { transform: scale(1.1) rotate(0deg); }
+    }
+
+    /* === CONTROLS === */
+    .controls {
+      width: 100%; max-width: 430px; display: flex; flex-direction: column;
+      gap: 10px; margin-top: 12px; flex-shrink: 0; z-index: 10;
+    }
+
+    .bet-row {
+      display: flex; justify-content: center; align-items: center; gap: 10px;
+    }
+
+    .bet-input {
+      width: 90px; padding: 12px 8px; font-size: 1.2rem; font-weight: 800;
+      text-align: center; border: 3px solid var(--gold);
+      border-radius: 12px; 
+      background: linear-gradient(135deg, #4a0a6a, #2d0a4a);
+      color: var(--gold); outline: none; 
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3), inset 0 2px 0 rgba(255,255,255,0.1);
+      transition: all 0.2s;
+    }
+    .bet-input:focus { 
+      border-color: var(--neon); 
+      box-shadow: 0 0 15px rgba(0,255,157,0.5), inset 0 2px 0 rgba(255,255,255,0.1);
+      transform: scale(1.05);
+    }
+
+    .btn {
+      width: 48px; height: 48px; min-width: 48px; min-height: 48px;
+      border-radius: 50%; 
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      border: 3px solid #fff; color: #000;
+      font-size: 1.5rem; font-weight: 800;
+      display: grid; place-items: center;
+      cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: all 0.15s ease; touch-action: manipulation;
+    }
+    .btn:active:not(:disabled) { transform: scale(0.92); box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+    .spin-btn {
+      width: 100%; padding: 18px 20px; font-size: 1.4rem; font-weight: 900;
+      background: linear-gradient(135deg, #ff0066, #ff00aa);
+      color: #fff; border: none; border-radius: 16px;
+      cursor: pointer; 
+      box-shadow: 0 6px 25px rgba(255,0,102,0.5), 0 0 50px rgba(255,0,170,0.3),
+        inset 0 2px 0 rgba(255,255,255,0.3);
+      transition: all 0.15s ease; text-transform: uppercase; letter-spacing: 2px;
+      touch-action: manipulation; position: relative; overflow: hidden;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .spin-btn::before {
+      content: ''; position: absolute; top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+      transition: left 0.4s ease;
+    }
+    .spin-btn:active:not(:disabled)::before { left: 100%; }
+    .spin-btn:active:not(:disabled) { transform: scale(0.98); }
+    .spin-btn:disabled { 
+      background: linear-gradient(135deg, #555, #333);
+      cursor: not-allowed; box-shadow: none; transform: none !important;
+    }
+
+    .info-box {
+      width: 100%; max-width: 430px; margin-top: 8px; padding: 12px 16px;
+      background: linear-gradient(135deg, rgba(107,10,143,0.6), rgba(45,10,74,0.6));
+      border-radius: 12px; text-align: center; font-size: 1rem; min-height: 48px;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid rgba(255,215,0,0.3);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      flex-shrink: 0; font-weight: 600; z-index: 10;
+    }
+    .info-box.win-text { 
+      color: var(--neon); font-size: 1.2rem;
+      animation: winGlow 1s ease-in-out infinite alternate;
+    }
+    .info-box.lose-text { color: var(--red); }
+
+    @keyframes winGlow {
+      from { text-shadow: 0 0 10px var(--neon); }
+      to { text-shadow: 0 0 25px var(--neon), 0 0 40px var(--neon); }
+    }
+
+    .legend {
+      width: 100%; max-width: 430px; margin-top: 10px;
+      font-size: 0.75rem; color: #ccc; text-align: center;
+      background: rgba(0,0,0,0.4); padding: 10px; border-radius: 10px;
+      line-height: 1.5; flex-shrink: 0; border: 1px solid rgba(255,215,0,0.2);
+      z-index: 10;
+    }
+    .legend .rare { color: var(--neon); font-weight: 700; }
+
+    /* === OVERLAY === */
+    .overlay {
+      position: fixed; inset: 0; 
+      background: radial-gradient(ellipse at center, rgba(107,10,143,0.95) 0%, rgba(0,0,0,0.98) 100%);
+      backdrop-filter: blur(10px);
+      display: flex; flex-direction: column; justify-content: center; align-items: center; 
+      z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+      padding: 20px; text-align: center;
+    }
+    .overlay.visible { opacity: 1; pointer-events: auto; }
+
+    .overlay-title {
+      font-size: 3rem; font-weight: 900; letter-spacing: 3px;
+      background: linear-gradient(180deg, #fff 0%, var(--gold) 50%, var(--gold-light) 100%);
+      -webkit-background-clip: text; background-clip: text; color: transparent; 
+      animation: titlePop 0.6s ease, titleShine 2s ease-in-out infinite;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.5); line-height: 1.1; margin-bottom: 20px;
+    }
+
+    .overlay-counter {
+      font-size: 3.5rem; color: var(--gold); font-weight: 900;
+      text-shadow: 0 0 20px rgba(255,215,0,0.8), 0 0 40px rgba(255,215,0,0.5), 0 4px 8px rgba(0,0,0,0.5);
+      animation: counterPulse 0.5s ease-in-out infinite alternate;
+      min-width: 200px;
+    }
+
+    .overlay-subtitle {
+      margin-top: 15px; font-size: 1.1rem; color: var(--neon); font-weight: 600;
+      animation: fadeIn 0.5s 0.5s both;
+    }
+
+    .overlay-coins {
+      position: absolute; width: 100%; height: 100%;
+      pointer-events: none; overflow: hidden;
+    }
+
+    .coin {
+      position: absolute; width: 40px; height: 40px;
+      background: radial-gradient(circle at 30% 30%, var(--gold-light), var(--gold));
+      border-radius: 50%; border: 3px solid #fff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      animation: coinFall 2s ease-in forwards;
+    }
+
+    @keyframes titlePop {
+      0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+      50% { transform: scale(1.2) rotate(5deg); }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    @keyframes titleShine { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.3); } }
+    @keyframes counterPulse { from { transform: scale(1); } to { transform: scale(1.05); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes coinFall {
+      0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+
+    @media (max-height: 700px) {
+      :root { --sym-h: 76px; }
+      .sym { font-size: 2.6rem; }
+      h1 { font-size: 1.4rem; }
+      .overlay-title { font-size: 2.5rem; }
+      .overlay-counter { font-size: 2.8rem; }
+    }
+    
+    @media (max-width: 340px) {
+      .slot-grid { gap: 4px; padding: 8px; }
+      .sym { font-size: 2.4rem; }
+      .btn { width: 44px; height: 44px; font-size: 1.3rem; }
+      .spin-btn { font-size: 1.2rem; padding: 15px; }
+      .bet-input { width: 80px; font-size: 1.1rem; }
+    }
+
+    ::-webkit-scrollbar { width: 0; height: 0; }
+  </style>
+</head>
+<body>
+  <div class="bg-coins"></div>
+  
+  <div class="header">
+    <div class="user-info">
+      <div class="avatar" id="userAvatar">👤</div>
+      <div class="username" id="userName">Игрок</div>
+    </div>
+    <h1>🎰 MHAWIN CASINO 🎰</h1>
+  </div>
+
+  <div class="hud">
+    <div class="hud-item">
+      <div class="hud-label">💰 Баланс</div>
+      <div class="hud-value" id="balance">1000</div>
+    </div>
+    <div class="hud-item">
+      <div class="hud-label">🎲 Ставка</div>
+      <div class="hud-value" id="betDisplay">50</div>
+    </div>
+  </div>
+
+  <div class="slot-wrapper">
+    <div class="slot-frame">
+      <div class="slot-grid" id="slotGrid"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="bet-row">
+      <button class="btn" id="betDown">➖</button>
+      <input type="number" class="bet-input" id="betInput" min="10" max="1000" value="50" inputmode="numeric">
+      <button class="btn" id="betUp">➕</button>
+    </div>
+    <button class="spin-btn" id="spinBtn">🎰 КРУТИТЬ</button>
+  </div>
+
+  <div class="info-box" id="infoBox">Нажмите "КРУТИТЬ" для старта</div>
+
+  <div class="legend">
+    <span class="rare">🍒 Кадыко ×3</span> | <span class="rare">𓇤 Горбунова ×4</span><br>
+    💩 Сын Панфилы | ᯡ Панфило • 5 линий
+  </div>
+
+  <div class="overlay" id="winOverlay">
+    <div class="overlay-coins" id="overlayCoins"></div>
+    <div class="overlay-title">🎉 ПАНФИЛИЗАЦИЯ! 🎉</div>
+    <div class="overlay-counter" id="counter">0</div>
+    <div class="overlay-subtitle">Коснитесь для продолжения</div>
+  </div>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+    if (tg) { tg.expand?.(); tg.enableClosingConfirmation?.(); }
+
+    const user = tg?.initDataUnsafe?.user;
+    if (user) {
+      const name = [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username || 'Игрок';
+      document.getElementById('userName').textContent = name.length > 18 ? name.slice(0,18)+'…' : name;
+      const avatar = document.getElementById('userAvatar');
+      if (user.photo_url) { avatar.style.backgroundImage = `url(${user.photo_url})`; avatar.textContent = ''; }
+      else if (user.username) { avatar.textContent = user.username[0]?.toUpperCase() || '👤'; }
+    }
+    if (tg?.themeParams) {
+      const { button_color } = tg.themeParams;
+      if (button_color) document.documentElement.style.setProperty('--tg-btn', button_color);
+    }
+    tg?.ready?.();
+
+    // === СИМВОЛЫ ===
+    const SYMBOLS = [
+      { emoji: "🍒", weight: 10, cls: "rare", mult: 3 },
+      { emoji: "𓇤", weight: 20, cls: "rare", mult: 4 },
+      { emoji: "💩", weight: 35, cls: "", mult: 1 },
+      { emoji: "ᯡ", weight: 35, cls: "", mult: 1 }
+    ];
+
+    // === 5 ЛИНИЙ: 3 горизонтали + 2 зигзага ===
+    const PAYLINES = [
+      [[0,0],[1,0],[2,0],[3,0],[4,0]],
+      [[0,1],[1,1],[2,1],[3,1],[4,1]],
+      [[0,2],[1,2],[2,2],[3,2],[4,2]],
+      [[0,0],[1,1],[2,2],[3,1],[4,0]],
+      [[0,2],[1,1],[2,0],[3,1],[4,2]]
+    ];
+
+    let balance = 1000;
+    let bet = 50;
+    let isSpinning = false;
+    const SYM_H = 88;
+    const FILL_COUNT = 20;
+    const STAGGER = [900, 1200, 1500, 1800, 2100];
+    const SAVE_KEY = 'mhawin_save_v3';
+
+    let audioCtx;
+    function initAudio() { if (!audioCtx && window.AudioContext) audioCtx = new AudioContext(); }
+    function playSound(freq, duration, type) {
+      if (!audioCtx) return;
+      try {
+        const t = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type || 'sine';
+        osc.frequency.setValueAtTime(freq, t);
+        gain.gain.setValueAtTime(0.12, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(t); osc.stop(t + duration);
+      } catch(e) {}
+    }
+    function playWin() {
+      [523,659,784,1047,1318].forEach((f,i) => setTimeout(() => playSound(f, 0.25, 'square'), i*100));
+    }
+
+    function weightedRandom() {
+      const total = SYMBOLS.reduce((s,x) => s + x.weight, 0);
+      let r = Math.random() * total;
+      for (const sym of SYMBOLS) { if ((r -= sym.weight) <= 0) return {...sym}; }
+      return {...SYMBOLS[0]};
+    }
+
+    function createGrid() {
+      const grid = document.getElementById('slotGrid');
+      grid.innerHTML = '';
+      for (let c = 0; c < 5; c++) {
+        const reel = document.createElement('div');
+        reel.className = 'reel';
+        const strip = document.createElement('div');
+        strip.className = 'strip';
+        strip.id = `s${c}`;
+        for (let r = 0; r < 3; r++) appendSym(strip, weightedRandom());
+        reel.appendChild(strip);
+        grid.appendChild(reel);
+      }
+    }
+
+    function appendSym(strip, sym) {
+      const d = document.createElement('div');
+      d.className = `sym ${sym.cls}`;
+      d.textContent = sym.emoji;
+      strip.appendChild(d);
+      return d;
+    }
+
+    async function spin() {
+      if (isSpinning || balance < bet) { tg?.HapticFeedback?.notificationOccurred?.('error'); return; }
+
+      initAudio();
+      isSpinning = true;
+      balance -= bet;
+      updateUI();
+      saveProgress();
+      playSound(150, 0.1, 'square');
+      tg?.HapticFeedback?.impactOccurred?.('medium');
+
+      const infoBox = document.getElementById('infoBox');
+      infoBox.textContent = '🎰 Вращение...';
+      infoBox.className = 'info-box';
+      document.getElementById('winOverlay').classList.remove('visible');
+
+      const finalGrid = Array.from({length:5}, () => Array.from({length:3}, () => weightedRandom()));
+      const promises = [];
+
+      for (let c = 0; c < 5; c++) {
+        const strip = document.getElementById(`s${c}`);
+        strip.innerHTML = '';
+        strip.style.transition = 'none';
+        strip.style.transform = 'translateY(0)';
+        for (let i = 0; i < FILL_COUNT; i++) appendSym(strip, weightedRandom());
+        finalGrid[c].forEach(s => appendSym(strip, s));
+        void strip.offsetHeight;
+        requestAnimationFrame(() => {
+          strip.style.transition = `transform ${STAGGER[4] - STAGGER[c] + 800}ms cubic-bezier(0.2,0.8,0.2,1)`;
+          strip.style.transform = `translateY(-${FILL_COUNT * SYM_H}px)`;
+        });
+        promises.push(new Promise(resolve => {
+          const onEnd = () => { strip.removeEventListener('transitionend', onEnd); resolve(); };
+          strip.addEventListener('transitionend', onEnd, {once:true});
+          setTimeout(onEnd, STAGGER[c] + 1200);
+        }));
+      }
+
+      await Promise.all(promises);
+      isSpinning = false;
+      evaluate(finalGrid);
+      updateUI();
+    }
+
+    function evaluate(grid) {
+      let win = 0;
+      const winCoords = new Set();
+
+      for (const line of PAYLINES) {
+        const [c0,r0] = line[0];
+        const first = grid[c0][r0];
+        let count = 1;
+        for (let i = 1; i < 5; i++) {
+          const [ci,ri] = line[i];
+          if (grid[ci][ri].emoji === first.emoji) count++;
+          else break;
+        }
+        if (count >= 3) {
+          const base = count === 3 ? 2 : count === 4 ? 8 : 40;
+          win += base * bet * first.mult;
+          for (let i = 0; i < count; i++) winCoords.add(`${line[i][0]},${line[i][1]}`);
+        }
+      }
+
+      balance += win;
+      const infoBox = document.getElementById('infoBox');
+      const winPercent = (win / bet) * 100;
+
+      if (win > 0) {
+        playWin();
+        tg?.HapticFeedback?.notificationOccurred?.('success');
+        winCoords.forEach(key => {
+          const [c,r] = key.split(',').map(Number);
+          const strip = document.getElementById(`s${c}`);
+          const sym = strip.children[r + FILL_COUNT];
+          sym?.classList.add('win');
+        });
+        
+        if (winPercent >= 200) {
+          showBigWinOverlay(win);
+        } else {
+          infoBox.innerHTML = `🎉 ВЫИГРЫШ: <span style="color:var(--neon)">+${win}</span>`;
+          infoBox.className = 'info-box win-text';
+        }
+      } else {
+        tg?.HapticFeedback?.notificationOccurred?.('warning');
+        infoBox.textContent = '❌ Нет совпадений';
+        infoBox.className = 'info-box lose-text';
+      }
+      saveProgress();
+    }
+
+    function showBigWinOverlay(totalWin) {
+      const overlay = document.getElementById('winOverlay');
+      const counterEl = document.getElementById('counter');
+      const coinsEl = document.getElementById('overlayCoins');
+      
+      overlay.classList.add('visible');
+      coinsEl.innerHTML = '';
+      
+      for (let i = 0; i < 20; i++) {
+        setTimeout(() => {
+          const coin = document.createElement('div');
+          coin.className = 'coin';
+          coin.style.left = Math.random() * 100 + '%';
+          coin.style.animationDelay = Math.random() * 0.5 + 's';
+          coin.style.animationDuration = (2 + Math.random() * 2) + 's';
+          coinsEl.appendChild(coin);
+          setTimeout(() => coin.remove(), 4000);
+        }, i * 100);
+      }
+      
+      animateCounter(counterEl, 0, totalWin, 3000);
+      const hide = () => overlay.classList.remove('visible');
+      setTimeout(hide, 5000);
+      overlay.onclick = hide;
+    }
+
+    function animateCounter(element, start, end, duration) {
+      const startTime = performance.now();
+      function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 4);
+        const current = Math.floor(start + (end - start) * easeOut);
+        
+        let displayValue;
+        if (current < 10) displayValue = current;
+        else if (current < 100) displayValue = Math.floor(current / 10) * 10;
+        else if (current < 1000) displayValue = Math.floor(current / 100) * 100;
+        else if (current < 10000) displayValue = Math.floor(current / 1000) * 1000;
+        else displayValue = Math.floor(current / 10000) * 10000;
+        
+        element.textContent = '+' + displayValue.toLocaleString('ru-RU');
+        
+        if (progress < 1) requestAnimationFrame(update);
+        else element.textContent = '+' + end.toLocaleString('ru-RU');
+      }
+      requestAnimationFrame(update);
+    }
+
+    function updateUI() {
+      document.getElementById('balance').textContent = balance.toLocaleString('ru-RU');
+      document.getElementById('betDisplay').textContent = bet;
+      document.getElementById('betInput').value = bet;
+      
+      const spinBtn = document.getElementById('spinBtn');
+      spinBtn.disabled = isSpinning || balance < bet;
+      document.getElementById('betDown').disabled = bet <= 10 || isSpinning;
+      document.getElementById('betUp').disabled = bet >= balance || isSpinning;
+      
+      if (tg?.MainButton) {
+        tg.MainButton.setText(isSpinning ? '⏳...' : '🎰 КРУТИТЬ');
+        tg.MainButton.setParams({ is_active: !isSpinning && balance >= bet, is_visible: true });
+      }
+    }
+
+    async function saveProgress() {
+      if (!tg?.CloudStorage) { localStorage.setItem(SAVE_KEY, JSON.stringify({balance, bet})); return; }
+      try {
+        await tg.CloudStorage.setItem('balance', balance.toString());
+        await tg.CloudStorage.setItem('bet', bet.toString());
+      } catch(e) { localStorage.setItem(SAVE_KEY, JSON.stringify({balance, bet})); }
+    }
+
+    async function loadProgress() {
+      if (tg?.CloudStorage) {
+        try {
+          const sb = await tg.CloudStorage.getItem('balance');
+          const sB = await tg.CloudStorage.getItem('bet');
+          if (sb) balance = parseInt(sb) || 1000;
+          if (sB) bet = Math.max(10, Math.min(1000, parseInt(sB) || 50));
+          updateUI(); return;
+        } catch(e) {}
+      }
+      try {
+        const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
+        if (saved?.balance) balance = saved.balance;
+        if (saved?.bet) bet = saved.bet;
+        updateUI();
+      } catch(e) {}
+    }
+
+    function setBet(value) {
+      const num = parseInt(value);
+      if (isNaN(num)) return;
+      bet = Math.max(10, Math.min(balance, Math.floor(num / 10) * 10));
+      updateUI();
+    }
+
+    function debounce(fn, delay = 100) {
+      let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), delay); };
+    }
+
+    document.getElementById('spinBtn').addEventListener('click', debounce(spin, 50));
+    document.getElementById('betDown').addEventListener('click', () => {
+      if (bet > 10 && !isSpinning) { bet -= 10; updateUI(); tg?.HapticFeedback?.selectionChanged?.(); }
+    });
+    document.getElementById('betUp').addEventListener('click', () => {
+      if (bet < balance && !isSpinning) { bet += 10; updateUI(); tg?.HapticFeedback?.selectionChanged?.(); }
+    });
+
+    const betInput = document.getElementById('betInput');
+    betInput.addEventListener('change', (e) => setBet(e.target.value));
+    betInput.addEventListener('blur', (e) => setBet(e.target.value));
+    betInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { setBet(betInput.value); betInput.blur(); } });
+
+    document.addEventListener('keydown', (e) => { if (e.code === 'Space' && !isSpinning) { e.preventDefault(); spin(); } });
+    document.addEventListener('touchmove', (e) => { if (e.target.closest('.slot-grid')) e.preventDefault(); }, {passive: false});
+
+    async function init() {
+      await loadProgress();
+      createGrid();
+      updateUI();
+      if (tg?.MainButton) {
+        tg.MainButton.setText('🎰 КРУТИТЬ');
+        tg.MainButton.setParams({ color: tg.themeParams?.button_color || '#ff0066' });
+        tg.MainButton.onClick(debounce(spin, 50));
+        tg.MainButton.show();
+      }
+    }
+
+    init();
+    window.addEventListener('beforeunload', () => { saveProgress(); audioCtx?.close?.(); });
+  </script>
+</body>
+</html>
